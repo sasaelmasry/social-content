@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة المحتوى</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .tab-active { background: #4F46E5; color: white; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { animation: spin 1s linear infinite; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+
+<!-- Login Screen -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2 text-center">🎯 نظام إدارة المحتوى</h1>
+        <p class="text-gray-600 mb-6 text-center">سجل دخولك للمتابعة</p>
+        
+        <div class="space-y-4">
+            <input type="email" id="loginEmail" placeholder="البريد الإلكتروني"
+                class="w-full px-4 py-3 border-2 rounded-lg focus:border-indigo-500 focus:outline-none">
+            <input type="password" id="loginPassword" placeholder="كلمة المرور"
+                class="w-full px-4 py-3 border-2 rounded-lg focus:border-indigo-500 focus:outline-none">
+            <div id="loginError" style="display:none;" class="bg-red-50 border-2 border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm"></div>
+            <button onclick="doLogin()" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium">
+                تسجيل الدخول
+            </button>
+        </div>
+        
+        <div class="mt-6 pt-6 border-t">
+            <p class="text-xs text-gray-500 text-center">💡 للتجربة السريعة:</p>
+            <p class="text-xs text-gray-600 text-center mt-1">kimozain755@gmail.com / Kimo@2025</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main App -->
+<div id="mainApp" style="display:none;">
+    <!-- Header -->
+    <div class="bg-white shadow-md border-b-4 border-indigo-500">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center flex-wrap gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">نظام إدارة المحتوى</h1>
+                <p class="text-sm text-gray-600">مرحباً، <span id="userName"></span></p>
+            </div>
+            <div class="flex gap-2">
+                <button id="settingsBtn" style="display:none;" onclick="togglePanel('settings')" class="p-2 hover:bg-gray-100 rounded-lg">⚙️</button>
+                <button id="adminBtn" style="display:none;" onclick="togglePanel('admin')" class="px-3 py-2 bg-yellow-100 hover:bg-yellow-200 rounded-lg text-sm font-medium">👑 إدارة</button>
+                <button onclick="doLogout()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm">خروج</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settingsPanel" style="display:none;" class="max-w-7xl mx-auto px-4 py-4">
+        <div class="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-6">
+            <h3 class="font-bold text-xl mb-4">⚙️ إعدادات API</h3>
+            <select id="modelSelect" class="w-full px-4 py-2 border-2 rounded-lg mb-3">
+                <option value="gpt-4o-mini">GPT-4o Mini ⭐</option>
+                <option value="gpt-4o">GPT-4o</option>
+            </select>
+            <div class="flex gap-2">
+                <input type="password" id="apiKeyInput" placeholder="OpenAI API Key" class="flex-1 px-4 py-2 border-2 rounded-lg">
+                <button onclick="testKey()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">اختبار</button>
+                <button onclick="saveKey()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" style="display:none;" class="max-w-7xl mx-auto px-4 py-4">
+        <div class="bg-purple-50 border-2 border-purple-400 rounded-lg p-6">
+            <h3 class="font-bold text-xl mb-4">👑 إدارة المستخدمين</h3>
+            <div class="bg-white rounded-lg p-4 mb-4">
+                <h4 class="font-bold mb-3">المستخدمون:</h4>
+                <div id="usersList"></div>
+            </div>
+            <div class="bg-white rounded-lg p-4">
+                <h4 class="font-bold mb-3">إضافة مستخدم:</h4>
+                <div class="grid md:grid-cols-5 gap-2">
+                    <input type="text" id="newName" placeholder="الاسم" class="px-3 py-2 border rounded">
+                    <input type="email" id="newEmail" placeholder="البريد" class="px-3 py-2 border rounded">
+                    <input type="password" id="newPass" placeholder="كلمة المرور" class="px-3 py-2 border rounded">
+                    <select id="newTool" class="px-3 py-2 border rounded">
+                        <option value="all">كل الأدوات</option>
+                        <option value="youtube">يوتيوب فقط</option>
+                        <option value="news">الأخبار فقط</option>
+                        <option value="story">القصص فقط</option>
+                    </select>
+                    <button onclick="addNewUser()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">إضافة</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <div id="tabsContainer" class="flex gap-2 mb-6 bg-white rounded-lg p-2 shadow"></div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <!-- YouTube -->
+            <div id="tab-youtube" style="display:none;">
+                <h2 class="text-xl font-bold mb-4">📹 محلل يوتيوب</h2>
+                <div class="mb-4 bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+                    <label class="block font-semibold mb-3">✅ اختر المخرجات:</label>
+                    <div class="grid md:grid-cols-3 gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="yt_title" checked class="w-4 h-4"> عنوان
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="yt_desc" checked class="w-4 h-4"> وصف
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="yt_hashtags" checked class="w-4 h-4"> هاشتاجات
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="yt_tags" checked class="w-4 h-4"> كلمات مفتاحية
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="yt_quotes" checked class="w-4 h-4"> أهم الجمل
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="yt_timestamps" checked class="w-4 h-4"> فواصل زمنية
+                        </label>
+                    </div>
+                </div>
+                <textarea id="yt_notes" rows="2" placeholder="ملاحظات إضافية (اختياري)" class="w-full p-3 border-2 rounded-lg mb-3"></textarea>
+                <textarea id="yt_input" rows="8" placeholder="الصق تفريغ الفيديو..." class="w-full p-4 border-2 rounded-lg mb-4"></textarea>
+                <button onclick="runYoutube()" id="yt_btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700">تحليل</button>
+                <div id="yt_results"></div>
+            </div>
+
+            <!-- News -->
+            <div id="tab-news" style="display:none;">
+                <h2 class="text-xl font-bold mb-4">📰 محول الأخبار</h2>
+                <div class="mb-4 bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+                    <label class="block font-semibold mb-3">✅ اختر النوع:</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="news_info" checked class="w-4 h-4"> إنفوجراف
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="news_video" checked class="w-4 h-4"> فيديوجراف
+                        </label>
+                    </div>
+                </div>
+                <textarea id="news_notes" rows="2" placeholder="ملاحظات إضافية" class="w-full p-3 border-2 rounded-lg mb-3"></textarea>
+                <textarea id="news_input" rows="8" placeholder="الصق نص الخبر..." class="w-full p-4 border-2 rounded-lg mb-4"></textarea>
+                <button onclick="runNews()" id="news_btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700">تحويل</button>
+                <div id="news_results"></div>
+            </div>
+
+            <!-- Story -->
+            <div id="tab-story" style="display:none;">
+                <h2 class="text-xl font-bold mb-4">📖 مولد القصص</h2>
+                <div class="mb-4 bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+                    <label class="block font-semibold mb-3">✅ اختر النوع:</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="story_vid" checked class="w-4 h-4"> فيديو
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="story_car" checked class="w-4 h-4"> كاروسيل
+                        </label>
+                    </div>
+                </div>
+                <textarea id="story_notes" rows="2" placeholder="ملاحظات إضافية" class="w-full p-3 border-2 rounded-lg mb-3"></textarea>
+                <textarea id="story_input" rows="6" placeholder="أدخل الفكرة أو النص..." class="w-full p-4 border-2 rounded-lg mb-4"></textarea>
+                <button onclick="runStory()" id="story_btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700">توليد</button>
+                <div id="story_results"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const DB = {
+    'kimozain755@gmail.com': { name: 'قتيبة زين', password: 'Kimo@2025', role: 'user', tools: ['youtube','news','story'] },
+    'yildiz.tr97@gmail.com': { name: 'محمد يلدز', password: 'Yildiz@2025', role: 'user', tools: ['youtube','news','story'] },
+    'msamy5576@gmail.com': { name: 'محمد سامي', password: 'Samy@2025', role: 'user', tools: ['youtube','news','story'] },
+    'osiizain9@gmail.com': { name: 'أسيد زين', password: 'Osama@2025', role: 'user', tools: ['youtube','news','story'] },
+    'mostafa_elmasry@windowslive.com': { name: 'مصطفى المصري', password: 'Admin@2025', role: 'admin', tools: ['youtube','news','story'] }
+};
+
+let user = null;
+
+function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    const err = document.getElementById('loginError');
+    
+    if (DB[email] && DB[email].password === pass) {
+        user = { email, ...DB[email] };
+        localStorage.setItem('user', JSON.stringify(user));
+        showMain();
+    } else {
+        err.textContent = '❌ البيانات غير صحيحة';
+        err.style.display = 'block';
+    }
+}
+
+function showMain() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    document.getElementById('userName').textContent = user.name;
+    
+    if (user.role === 'admin') {
+        document.getElementById('settingsBtn').style.display = 'block';
+        document.getElementById('adminBtn').style.display = 'block';
+        const k = localStorage.getItem('api_key');
+        if (k) document.getElementById('apiKeyInput').value = k;
+    }
+    
+    buildTabs();
+}
+
+function buildTabs() {
+    const c = document.getElementById('tabsContainer');
+    const names = { youtube: '📹 يوتيوب', news: '📰 أخبار', story: '📖 قصص' };
+    c.innerHTML = '';
+    let first = null;
+    
+    user.tools.forEach(t => {
+        if (!first) first = t;
+        const btn = document.createElement('button');
+        btn.onclick = () => switchTab(t);
+        btn.id = 'btn-' + t;
+        btn.className = 'flex-1 px-4 py-3 rounded-lg font-medium';
+        btn.textContent = names[t];
+        c.appendChild(btn);
+    });
+    
+    if (first) switchTab(first);
+}
+
+function switchTab(t) {
+    ['youtube','news','story'].forEach(x => {
+        const tab = document.getElementById('tab-' + x);
+        const btn = document.getElementById('btn-' + x);
+        if (tab) tab.style.display = x === t ? 'block' : 'none';
+        if (btn) btn.className = x === t ? 'tab-active flex-1 px-4 py-3 rounded-lg font-medium' : 'flex-1 px-4 py-3 rounded-lg font-medium';
+    });
+}
+
+const saved = localStorage.getItem('user');
+if (saved) {
+    user = JSON.parse(saved);
+    showMain();
+}
+
+function doLogout() {
+    localStorage.removeItem('user');
+    location.reload();
+}
+
+function togglePanel(p) {
+    const panels = { settings: 'settingsPanel', admin: 'adminPanel' };
+    Object.values(panels).forEach(x => {
+        document.getElementById(x).style.display = 'none';
+    });
+    document.getElementById(panels[p]).style.display = 'block';
+    if (p === 'admin') loadUsers();
+}
+
+function loadUsers() {
+    const list = document.getElementById('usersList');
+    list.innerHTML = Object.entries(DB).map(([e, u]) => `
+        <div class="p-3 bg-gray-50 rounded mb-2 flex justify-between items-center text-sm">
+            <div>
+                <div class="font-semibold">${u.name}</div>
+                <div class="text-xs text-gray-500">${e}</div>
+                <div class="text-xs text-blue-600">${u.tools.join(', ')}</div>
+            </div>
+            ${u.role !== 'admin' ? `<button onclick="delUser('${e}')" class="px-2 py-1 bg-red-500 text-white rounded text-xs">حذف</button>` : '<span class="text-xs bg-yellow-200 px-2 py-1 rounded">👑</span>'}
+        </div>
+    `).join('');
+}
+
+function addNewUser() {
+    const name = document.getElementById('newName').value.trim();
+    const email = document.getElementById('newEmail').value.trim();
+    const pass = document.getElementById('newPass').value;
+    const tool = document.getElementById('newTool').value;
+    
+    if (!name || !email || !pass) return alert('⚠️ أكمل الحقول');
+    
+    const tools = tool === 'all' ? ['youtube','news','story'] : [tool];
+    DB[email] = { name, password: pass, role: 'user', tools };
+    
+    document.getElementById('newName').value = '';
+    document.getElementById('newEmail').value = '';
+    document.getElementById('newPass').value = '';
+    
+    alert('✅ تم الإضافة');
+    loadUsers();
+}
+
+function delUser(e) {
+    if (confirm(`حذف ${DB[e].name}؟`)) {
+        delete DB[e];
+        alert('✅ تم الحذف');
+        loadUsers();
+    }
+}
+
+async function callAI(prompt, sys, notes) {
+    const key = localStorage.getItem('api_key');
+    const model = localStorage.getItem('model') || 'gpt-4o-mini';
+    
+    if (!key) return alert('⚠️ لم يتم تكوين API');
+    if (notes) prompt += `\n\n📝 ${notes}`;
+    
+    try {
+        const r = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+            body: JSON.stringify({
+                model,
+                messages: [{ role: 'system', content: sys }, { role: 'user', content: prompt }],
+                temperature: 0.7,
+                max_tokens: 3000
+            })
+        });
+        
+        if (!r.ok) throw new Error('خطأ API');
+        const d = await r.json();
+        return d.choices[0].message.content;
+    } catch (e) {
+        alert('❌ ' + e.message);
+        return null;
+    }
+}
+
+function showRes(id, txt) {
+    document.getElementById(id).innerHTML = `
+        <div class="mt-6">
+            <div class="flex gap-2 mb-3">
+                <button onclick="copy('${id}')" class="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700">نسخ</button>
+                <button onclick="dl('${id}')" class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">تحميل</button>
+            </div>
+            <div class="bg-gray-50 p-4 rounded border-2 whitespace-pre-wrap" id="${id}_txt">${txt}</div>
+        </div>
+    `;
+}
+
+function copy(id) {
+    navigator.clipboard.writeText(document.getElementById(id+'_txt').textContent);
+    alert('✅ تم النسخ');
+}
+
+function dl(id) {
+    const txt = document.getElementById(id+'_txt').textContent;
+    const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `result-${Date.now()}.txt`;
+    a.click();
+}
+
+async function runYoutube() {
+    const inp = document.getElementById('yt_input').value;
+    const notes = document.getElementById('yt_notes').value;
+    const btn = document.getElementById('yt_btn');
+    
+    if (!inp.trim()) return alert('⚠️ أدخل التفريغ');
+    
+    const opts = {
+        title: document.getElementById('yt_title').checked,
+        desc: document.getElementById('yt_desc').checked,
+        hashtags: document.getElementById('yt_hashtags').checked,
+        tags: document.getElementById('yt_tags').checked,
+        quotes: document.getElementById('yt_quotes').checked,
+        timestamps: document.getElementById('yt_timestamps').checked
+    };
+    
+    let reqs = [];
+    if (opts.title) reqs.push('عنوان رئيسي مثير متوافق مع SEO يحتوي على Trigger Words');
+    if (opts.desc) reqs.push('وصف قوي محسّن بكلمات مفتاحية');
+    if (opts.hashtags) reqs.push('هاشتاجات قوية (Trend + SEO)');
+    if (opts.tags) reqs.push('Tags متوافقة مع أكثر الكلمات بحثاً');
+    if (opts.quotes) reqs.push('أهم الجمل المقتبسة');
+    if (opts.timestamps) reqs.push('فواصل زمنية Timestamps');
+    
+    if (reqs.length === 0) return alert('⚠️ اختر مخرج واحد على الأقل');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div> جاري...';
+    
+    const sys = 'أنت خبير يوتيوب. ركز على CTR و Watch Time.';
+    const prompt = `حلل هذا التفريغ وأعطني:\n${reqs.join('\n')}\n\nالتفريغ:\n${inp}`;
+    
+    const res = await callAI(prompt, sys, notes);
+    
+    btn.disabled = false;
+    btn.textContent = 'تحليل';
+    
+    if (res) showRes('yt_results', res);
+}
+
+async function runNews() {
+    const inp = document.getElementById('news_input').value;
+    const notes = document.getElementById('news_notes').value;
+    const btn = document.getElementById('news_btn');
+    
+    if (!inp.trim()) return alert('⚠️ أدخل الخبر');
+    
+    const wantInfo = document.getElementById('news_info').checked;
+    const wantVid = document.getElementById('news_video').checked;
+    
+    if (!wantInfo && !wantVid) return alert('⚠️ اختر نوع واحد على الأقل');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div> جاري...';
+    
+    let results = [];
+    
+    if (wantInfo) {
+        const sys = 'Digital news editor. Output Arabic only.';
+        const p = `INPUT: ${inp}\n\nGenerate JSON:\n{"infographic":{"title":"4-9 words","points":["4-7 points"],"angle":"...","impact_line":"..."},"social":{"caption":"3-5 lines","hashtags":["5-8"]}}\n\nRules: Factual, no opinion.`;
+        const r = await callAI(p, sys, notes);
+        if (r) results.push('━━━ إنفوجراف ━━━\n\n' + r);
+    }
+    
+    if (wantVid) {
+        const sys = 'Video editor. Output Arabic only.';
+        const p = `INPUT: ${inp}\n\nGenerate JSON:\n{"video":{"hook":"...","scenes":[{"scene_number":1,"on_screen_text":"...","voice_over":"...","visual_direction":"..."}],"ending_line":"..."},"social":{"caption":"...","hashtags":[...]}}\n\n4-7 scenes max.`;
+        const r = await callAI(p, sys, notes);
+        if (r) results.push('\n\n━━━ فيديوجراف ━━━\n\n' + r);
+    }
+    
+    btn.disabled = false;
+    btn.textContent = 'تحويل';
+    
+    if (results.length > 0) showRes('news_results', results.join('\n\n'));
+}
+
+async function runStory() {
+    const inp = document.getElementById('story_input').value;
+    const notes = document.getElementById('story_notes').value;
+    const btn = document.getElementById('story_btn');
+    
+    if (!inp.trim()) return alert('⚠️ أدخل النص');
+    
+    const wantVid = document.getElementById('story_vid').checked;
+    const wantCar = document.getElementById('story_car').checked;
+    
+    if (!wantVid && !wantCar) return alert('⚠️ اختر نوع واحد على الأقل');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div> جاري...';
+    
+    const sys = 'Storytelling editor. Output Arabic only.';
+    
+    let parts = [];
+    if (wantVid) parts.push('"story_video":{"hook","scenes":[4-7],"ending_line"}');
+    if (wantCar) parts.push('"carousel":{"slide_titles":[4-7],"slide_texts":[4-7]}');
+    
+    const p = `INPUT: ${inp}\n\nGenerate JSON:\n{${parts.join(',')}, "social":{"caption","hashtags"},"engagement_question":"..."}\n\nNeutral, youthful, factual.`;
+    
+    const r = await callAI(p, sys, notes);
+    
+    btn.disabled = false;
+    btn.textContent = 'توليد';
+    
+    if (r) showRes('story_results', r);
+}
+
+function saveKey() {
+    const k = document.getElementById('apiKeyInput').value;
+    const m = document.getElementById('modelSelect').value;
+    if (!k.trim()) return alert('⚠️ أدخل المفتاح');
+    localStorage.setItem('api_key', k.trim());
+    localStorage.setItem('model', m);
+    alert('✅ تم الحفظ');
+}
+
+async function testKey() {
+    const k = document.getElementById('apiKeyInput').value;
+    const m = document.getElementById('modelSelect').value;
+    if (!k.trim()) return alert('⚠️ أدخل المفتاح');
+    
+    try {
+        const r = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${k}` },
+            body: JSON.stringify({ model: m, messages: [{ role: 'user', content: 'مرحبا' }], max_tokens: 10 })
+        });
+        
+        if (r.ok) {
+            alert('✅ المفتاح يعمل!');
+            localStorage.setItem('api_key', k.trim());
+            localStorage.setItem('model', m);
+        } else {
+            alert('❌ المفتاح غير صحيح');
+        }
+    } catch {
+        alert('❌ خطأ في الاتصال');
+    }
+}
+
+document.getElementById('loginPassword')?.addEventListener('keypress', e => {
+    if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
+</html>
